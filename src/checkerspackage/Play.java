@@ -166,29 +166,29 @@ public class Play extends BasicGameState{
 	
 	
 	/**
-	 * @param player
-	 * @param ax
-	 * @param ay
+	 * @param player piece trying to move.
+	 * @param newx new x coordinate for player.
+	 * @param newy new y coordinate for player.
 	 * @return true if player can chain jump. false otherwise.
 	 */
-	public Boolean canChain(Piece player, int ax, int ay){
+	public Boolean canChain(Piece player, int newx, int newy){
 		if(jumped){
 			// Red piece or king
 			if(player.isRed() || player.isKing()){
-				if(ax >= 2 && ay >= 2){
-					if(board[ax - 1][ay - 1] != null){
-						if(board[ax - 1][ay - 1].isRed() != board[ax][ay].isRed()){
-							if(board[ax - 2][ay - 2] == null){
+				if(newx >= 2 &&newy>= 2){
+					if(board[newx - 1][newy- 1] != null){
+						if(board[newx - 1][newy- 1].isRed() != board[newx][newy].isRed()){
+							if(board[newx - 2][newy- 2] == null){
 								chain = true;
 								return true;
 							}
 						}	
 					}
 				}
-				if(ax <= 5 && ay >= 2){
-					if(board[ax + 1][ay - 1] != null){
-						if(board[ax + 1][ay - 1].isRed() != board[ax][ay].isRed()){
-							if(board[ax + 2][ay - 2] == null){
+				if(newx <= 5 &&newy>= 2){
+					if(board[newx + 1][newy- 1] != null){
+						if(board[newx + 1][newy- 1].isRed() != board[newx][newy].isRed()){
+							if(board[newx + 2][newy- 2] == null){
 								chain = true;
 								return true;
 							}
@@ -199,20 +199,20 @@ public class Play extends BasicGameState{
 			
 			// Black piece or king
 			if(!player.isRed() || player.isKing()){
-				if(ax >= 2 && ay <= 5){
-					if(board[ax - 1][ay + 1] != null){
-						if(board[ax - 1][ay + 1].isRed() != board[ax][ay].isRed()){
-							if(board[ax - 2][ay + 2] == null){
+				if(newx >= 2 &&newy<= 5){
+					if(board[newx - 1][newy+ 1] != null){
+						if(board[newx - 1][newy+ 1].isRed() != board[newx][newy].isRed()){
+							if(board[newx - 2][newy+ 2] == null){
 								chain = true;
 								return true;
 							}
 						}	
 					}
 				}
-				if(ax <= 5 && ay <= 5){
-					if(board[ax + 1][ay + 1] != null){
-						if(board[ax + 1][ay + 1].isRed() != board[ax][ay].isRed()){
-							if(board[ax + 2][ay + 2] == null){
+				if(newx <= 5 &&newy<= 5){
+					if(board[newx + 1][newy+ 1] != null){
+						if(board[newx + 1][newy+ 1].isRed() != board[newx][newy].isRed()){
+							if(board[newx + 2][newy+ 2] == null){
 								chain = true;
 								return true;
 							}
