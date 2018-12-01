@@ -165,6 +165,12 @@ public class Play extends BasicGameState{
 	}
 	
 	
+	/**
+	 * @param player
+	 * @param ax
+	 * @param ay
+	 * @return true if player can chain jump. false otherwise.
+	 */
 	public Boolean canChain(Piece player, int ax, int ay){
 		if(jumped){
 			// Red piece or king
@@ -215,6 +221,7 @@ public class Play extends BasicGameState{
 				}
 			}
 		}
+		jumped = false;
 		chain = false;
 		return false;
 	}
@@ -235,14 +242,22 @@ public class Play extends BasicGameState{
 					if(newx == x - 2 && board[x - 1][y - 1] != null){
 						if(board[x - 1][y - 1].isRed() != player.isRed()){
 							board[x - 1][y - 1] = null;
-							player1Score++;
+							if(player.isRed()){
+								player1Score++;
+							} else {
+								player2Score++;
+							}
 							jumped = true;
 							return true;
 						}
 					} else if(newx == x + 2 && board[x + 1][y - 1] != null){
 						if(board[x + 1][y - 1].isRed() != player.isRed()){
 							board[x + 1][y - 1] = null;
-							player1Score++;
+							if(player.isRed()){
+								player1Score++;
+							} else {
+								player2Score++;
+							}
 							jumped = true;
 							return true;
 						}
@@ -256,14 +271,22 @@ public class Play extends BasicGameState{
 					if(newx == x - 2 && board[x - 1][y + 1] != null){
 						if(board[x - 1][y + 1].isRed() != player.isRed()){
 							board[x - 1][y + 1] = null;
-							player2Score++;
+							if(player.isRed()){
+								player1Score++;
+							} else {
+								player2Score++;
+							}
 							jumped = true;
 							return true;
 						}
 					} else if(newx == x + 2 && board[x + 1][y + 1] != null){
 						if(board[x + 1][y + 1].isRed() != player.isRed()){
 							board[x + 1][y + 1] = null;
-							player2Score++;
+							if(player.isRed()){
+								player1Score++;
+							} else {
+								player2Score++;
+							}
 							jumped = true;
 							return true;
 						}
