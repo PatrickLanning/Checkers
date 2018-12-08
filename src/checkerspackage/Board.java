@@ -5,14 +5,17 @@ public class Board {
 	private int score = 500;
 	
 	public Board() {
-		reset();
+		fill();
 	}
 	
 	public Board (Piece[][] pieces){
 		this.pieces = pieces;
 	}
 	
-	private void reset(){
+	/**
+	 * fills the board with pieces
+	 */
+	private void fill(){
 		Boolean fill = false;
 		for(int i = 0; i < 8; i++){
 			for(int j = 0; j < 8; j++){

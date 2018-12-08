@@ -7,8 +7,7 @@ import org.newdawn.slick.state.*;
 
 public class Play extends BasicGameState{
 	
-	//private Board boardtemp = new Board();
-	private Piece[][] board = new Piece[8][8];
+	private Board board;
 	private int x = 0;
 	private int y = 0;
 	private Boolean held = false;
@@ -20,6 +19,9 @@ public class Play extends BasicGameState{
 	private int player1Score = 0;
 	private int player2Score = 0;
 	
+	private Boolean playingAgainstComp = false;
+	Comp comp;
+	
 	
 	
 	public Play(int state){
@@ -27,28 +29,12 @@ public class Play extends BasicGameState{
 	}
 	
 	public void init(GameContainer gc, StateBasedGame sbg) throws SlickException {
-		reset();
-	}
-	
-	private void reset(){
-		Boolean fill = false;
-		for(int i = 0; i < 8; i++){
-			for(int j = 0; j < 8; j++){
-				if(fill){
-					fill = false;
-					if(i <= 2){
-						board[j][i] = new Piece(false, j*100, i*100);
-					}
-					if(i >= 5){
-						board[j][i] = new Piece(true, j*100, i*100);
-					}
-				} else{
-					fill = true;
-				}
-			}
-			fill = !fill;
+		board = new Board();
+		if(playingAgainstComp){
+			comp = new Comp(3);
 		}
 	}
+	
 	
 	public void render(GameContainer gc, StateBasedGame sbg, Graphics g) throws SlickException {
 		Image lightSquare = new Image("res/Checkerslight.png");
@@ -72,13 +58,13 @@ public class Play extends BasicGameState{
 		for(int i = 0; i < 8; i+= 1){
 			for(int j = 0; j < 8; j+= 1){
 				// fill board with pieces
-				if(board[j][i] != null && (!held || !(j == x && i == y))){
-					g.drawImage(board[j][i].getImage(),board[j][i].getX(),board[j][i].getY());
+				if(board.getPiece(j, i)!= null && (!held || !(j == x && i == y))){
+					g.drawImage(board.getPiece(j, i).getImage(),board.getPiece(j, i).getX(),board.getPiece(j, i).getY());
 				} 
 			}
 		}
 		if(held){
-			g.drawImage(board[x][y].getImage(),board[x][y].getX(),board[x][y].getY());
+			g.drawImage(board.getPiece(x, y).getImage(),board.getPiece(x, y).getX(),board.getPiece(x, y).getY());
 		}
 		if(redTurn){
 			g.drawString("Red Turn", 5, 40);
@@ -97,8 +83,8 @@ public class Play extends BasicGameState{
 	private Boolean anyHeld(){
 		for(int i = 0; i < 8; i++){
 			for(int j = 0; j < 8; j++){
-				if(board[i][j] != null)	{
-					if(board[i][j].isHeld()){
+				if(board.getPiece(i, j) != null)	{
+					if(board.getPiece(i, j).isHeld()){
 						held = true;
 						return true;
 					}
@@ -119,44 +105,44 @@ public class Play extends BasicGameState{
 				x = (xpos) / 100;
 				y = (ypos) / 100;		
 				if(x >= 0 && x <= 7 && y >= 0 && y <= 7){	
-					if(board[x][y] != null){
+					if(board.getPiece(x,y) != null){
 						
 						if(chain){
 							if(x == chainx && y == chainy){
-								board[x][y].hold();
+								board.getPiece(x,y).hold();
 							}
 						}
 						// Check if the piece is moving on the correct turn
-						else if((redTurn && board[x][y].isRed())||(!redTurn && !board[x][y].isRed())){
-							board[x][y].hold();
+						else if((redTurn && board.getPiece(x,y).isRed())||(!redTurn && !board.getPiece(x,y).isRed())){
+							board.getPiece(x,y).hold();
 						}
 					}
 				}
 			}
 		} else {
-			board[x][y].setX(xpos - 50);
-			board[x][y].setY(ypos - 50);
+			board.getPiece(x,y).setX(xpos - 50);
+			board.getPiece(x,y).setY(ypos - 50);
 
 			if(!Mouse.isButtonDown(0)){
 				int newx = xpos / 100;
 				int newy = ypos / 100;
-				board[x][y].drop();
-				if(Move(board[x][y],newx,newy) /*board[newx][newy] == null*/){
-					board[x][y].setX(newx * 100);
-					board[x][y].setY(newy * 100);
-					board[newx][newy] = board[x][y];
-					board[x][y] = null;	
+				board.getPiece(x,y).drop();
+				if(Move(board.getPiece(x,y),newx,newy) /*board[newx][newy] == null*/){
+					board.getPiece(x,y).setX(newx * 100);
+					board.getPiece(x,y).setY(newy * 100);
+					board.setPiece(board.getPiece(x,y),newx,newy);
+					board.setPiece(null,x,y);	
 					// Change turns
 					
-					if(canChain(board[newx][newy], newx, newy)){
+					if(canChain(board.getPiece(newx,newy), newx, newy)){
 						chainx = newx;
 						chainy = newy;
 					} else {
 						redTurn = !redTurn;
 					}
 				} else {
-					board[x][y].setX(x * 100);
-					board[x][y].setY(y * 100);
+					board.getPiece(x,y).setX(x * 100);
+					board.getPiece(x,y).setY(y * 100);
 				}
 				held = false;
 			}
@@ -176,9 +162,9 @@ public class Play extends BasicGameState{
 			// Red piece or king
 			if(player.isRed() || player.isKing()){
 				if(newx >= 2 &&newy>= 2){
-					if(board[newx - 1][newy- 1] != null){
-						if(board[newx - 1][newy- 1].isRed() != board[newx][newy].isRed()){
-							if(board[newx - 2][newy- 2] == null){
+					if(board.getPiece(newx - 1, newy - 1) != null){
+						if(board.getPiece(newx - 1, newy - 1).isRed() != board.getPiece(newx,newy).isRed()){
+							if(board.getPiece(newx - 2, newy - 2) == null){
 								chain = true;
 								return true;
 							}
@@ -186,9 +172,9 @@ public class Play extends BasicGameState{
 					}
 				}
 				if(newx <= 5 &&newy>= 2){
-					if(board[newx + 1][newy- 1] != null){
-						if(board[newx + 1][newy- 1].isRed() != board[newx][newy].isRed()){
-							if(board[newx + 2][newy- 2] == null){
+					if(board.getPiece(newx + 1, newy - 1) != null){
+						if(board.getPiece(newx + 1, newy - 1).isRed() != board.getPiece(newx,newy).isRed()){
+							if(board.getPiece(newx + 2, newy - 2) == null){
 								chain = true;
 								return true;
 							}
@@ -200,9 +186,9 @@ public class Play extends BasicGameState{
 			// Black piece or king
 			if(!player.isRed() || player.isKing()){
 				if(newx >= 2 &&newy<= 5){
-					if(board[newx - 1][newy+ 1] != null){
-						if(board[newx - 1][newy+ 1].isRed() != board[newx][newy].isRed()){
-							if(board[newx - 2][newy+ 2] == null){
+					if(board.getPiece(newx - 1, newy + 1) != null){
+						if(board.getPiece(newx - 1, newy + 1).isRed() != board.getPiece(newx,newy).isRed()){
+							if(board.getPiece(newx - 2, newy + 2) == null){
 								chain = true;
 								return true;
 							}
@@ -210,9 +196,9 @@ public class Play extends BasicGameState{
 					}
 				}
 				if(newx <= 5 &&newy<= 5){
-					if(board[newx + 1][newy+ 1] != null){
-						if(board[newx + 1][newy+ 1].isRed() != board[newx][newy].isRed()){
-							if(board[newx + 2][newy+ 2] == null){
+					if(board.getPiece(newx + 1, newy + 1) != null){
+						if(board.getPiece(newx + 1, newy + 1).isRed() != board.getPiece(newx,newy).isRed()){
+							if(board.getPiece(newx + 2, newy + 2) == null){
 								chain = true;
 								return true;
 							}
@@ -233,15 +219,15 @@ public class Play extends BasicGameState{
 	 * @return true if a player can move to position (x,y) in one move. false otherwise.
 	 */
 	public Boolean Move(Piece player, int newx, int newy){
-		if(board[newx][newy] == null){
+		if(board.getPiece(newx,newy) == null){
 			if(player.isRed() || player.isKing()){
 				if((newx == x+1 || newx == x-1) && newy == y - 1 && !chain){
 					jumped = false;
 					return true;
 				} else if(newy == y - 2){
-					if(newx == x - 2 && board[x - 1][y - 1] != null){
-						if(board[x - 1][y - 1].isRed() != player.isRed()){
-							board[x - 1][y - 1] = null;
+					if(newx == x - 2 && board.getPiece(x - 1, y - 1) != null){
+						if(board.getPiece(x - 1, y - 1).isRed() != player.isRed()){
+							board.setPiece(null, x - 1, y - 1);
 							if(player.isRed()){
 								player1Score++;
 							} else {
@@ -250,9 +236,9 @@ public class Play extends BasicGameState{
 							jumped = true;
 							return true;
 						}
-					} else if(newx == x + 2 && board[x + 1][y - 1] != null){
-						if(board[x + 1][y - 1].isRed() != player.isRed()){
-							board[x + 1][y - 1] = null;
+					} else if(newx == x + 2 && board.getPiece(x + 1, y - 1) != null){
+						if(board.getPiece(x + 1, y - 1).isRed() != player.isRed()){
+							board.setPiece(null, x + 1, y - 1);
 							if(player.isRed()){
 								player1Score++;
 							} else {
@@ -268,9 +254,9 @@ public class Play extends BasicGameState{
 				if((newx == x+1 || newx == x-1) && newy == y + 1){
 					return true;
 				} else if(newy == y + 2){
-					if(newx == x - 2 && board[x - 1][y + 1] != null){
-						if(board[x - 1][y + 1].isRed() != player.isRed()){
-							board[x - 1][y + 1] = null;
+					if(newx == x - 2 && board.getPiece(x - 1, y + 1) != null){
+						if(board.getPiece(x - 1, y + 1).isRed() != player.isRed()){
+							board.setPiece(null, x - 1, y + 1);
 							if(player.isRed()){
 								player1Score++;
 							} else {
@@ -279,9 +265,9 @@ public class Play extends BasicGameState{
 							jumped = true;
 							return true;
 						}
-					} else if(newx == x + 2 && board[x + 1][y + 1] != null){
-						if(board[x + 1][y + 1].isRed() != player.isRed()){
-							board[x + 1][y + 1] = null;
+					} else if(newx == x + 2 && board.getPiece(x + 1, y + 1) != null){
+						if(board.getPiece(x + 1, y + 1).isRed() != player.isRed()){
+							board.setPiece(null, x + 1, y + 1);
 							if(player.isRed()){
 								player1Score++;
 							} else {
@@ -297,6 +283,10 @@ public class Play extends BasicGameState{
 		return false;
 	}
 	
+	public Boolean cpuMove(){
+		return true;
+	}
+	
 	/**
 	 * checks if any pieces should be made a king and converts them to one if necessary.
 	 */
@@ -304,16 +294,16 @@ public class Play extends BasicGameState{
 		for(int i = 0; i < 8; i++){
 			
 			// check if a red piece should be made a king
-			if (board[i][0] != null){
-				if(board[i][0].isRed() && !board[i][0].isKing()){
-					board[i][0].makeKing();
+			if (board.getPiece(i, 0) != null){
+				if(board.getPiece(i, 0).isRed() && !board.getPiece(i, 0).isKing()){
+					board.getPiece(i, 0).makeKing();
 				}
 			}
 			
 			// check if a black piece should be made a king
-			if (board[i][7] != null){
-				if(!board[i][7].isRed() && !board[i][7].isKing()){
-					board[i][7].makeKing();
+			if (board.getPiece(i, 7) != null){
+				if(!board.getPiece(i, 7).isRed() && !board.getPiece(i, 7).isKing()){
+					board.getPiece(i, 7).makeKing();
 				}
 			}
 		}
